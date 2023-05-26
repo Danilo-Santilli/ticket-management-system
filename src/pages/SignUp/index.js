@@ -12,13 +12,10 @@ export default function SignIn(){
 
     const { signUp, loadingAuth } = useContext(AuthContext);
     
-    // Função assíncrona para lidar com o envio do formulário de registro
     async function handleSubmit(e){
         e.preventDefault();
 
-        // Verifica se todos os campos estão preenchidos
         if (name !== '' && email !== '' && password !== '') {
-            // Chama a função signUp do contexto para criar uma nova conta de usuário
             await signUp(name, email, password);
         }
     }
