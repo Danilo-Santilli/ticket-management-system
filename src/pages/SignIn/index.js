@@ -18,7 +18,7 @@ export default function SignIn(){
                 <form>
                     <h1>Entrar</h1>
                     <input 
-                    type="text" 
+                    type="email" 
                     placeholder='Email' 
                     value={email}
                     onChange={ (e)=> setEmail(e.target.value) }
