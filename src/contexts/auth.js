@@ -111,11 +111,13 @@ function AuthProvider({children}){
         <AuthContext.Provider value={{
             signed: !!user, 
             user,
+            setUser,
             signIn,
             signUp,
             logout,
             loadingAuth,
-            loading
+            loading,
+            storageUser
         }}>
             {children}
         </AuthContext.Provider>
