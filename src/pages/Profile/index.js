@@ -5,24 +5,24 @@ import { FiSettings, FiUpload } from 'react-icons/fi';
 import avatar from '../../assets/avatar.png';
 import { AuthContext } from '../../contexts/auth';
 import { useContext, useState } from 'react';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db, storage } from '../../services/firebaseConnection';
+import { toast } from 'react-toastify';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function Profile(){
-    // Obtém as informações do usuário e as funções relacionadas do contexto de autenticação
     const { user, storageUser, setUser, logout } = useContext(AuthContext);
 
-    // Define os estados para as informações do perfil do usuário
     const [avatarUrl, setAvatarUrl] = useState(user && user.avatarUrl);
     const [imageAvatar, setImageAvatar] = useState(null);
     const [nome, setNome] = useState(user && user.nome);
     const [email, setEmail] = useState(user && user.email);
 
-    // Manipula o evento de seleção de arquivo para atualizar a imagem do avatar
     function handleFile(e){
         if(e.target.files[0]){
             const image = e.target.files[0];
             if (image.type === 'image/jpeg' || image.type === 'image/png') {
                 setImageAvatar(image);
-                // Define a URL do objeto de imagem selecionado como avatar
                 setAvatarUrl(URL.createObjectURL(image));
             }else{
                 alert('Envie uma imagem do tipo PNG ou JPG');
@@ -30,6 +30,67 @@ export default function Profile(){
                 return;
             }
         };
+    }
+
+    async function handleUpload(){
+        // Obtém o UID atual do usuário
+        const currentUid = user.uid;
+    
+        // Referência para o upload da imagem no Storage
+        const uploadRef = ref(storage, `images/${currentUid}/${imageAvatar.name}`);
+        
+        // Executa o upload da imagem para o Storage
+        const uploadTask = uploadBytes(uploadRef, imageAvatar)
+        .then((snapshot)=>{
+            // Obtém a URL de download da imagem do Storage
+            getDownloadURL(snapshot.ref).then( async (downLoadURL) => {
+                let urlFoto = downLoadURL;
+                const docRef = doc(db, 'users', user.uid);
+                // Atualiza os dados do usuário com a nova URL de avatar e nome
+                await updateDoc(docRef, {
+                    avatarUrl: urlFoto,
+                    nome: nome,
+                })
+                .then(()=>{
+                    let data = {
+                        ...user,
+                        nome: nome,
+                        avatarUrl: urlFoto,
+                    }
+    
+                    // Atualiza o estado do usuário e armazena no armazenamento local
+                    setUser(data);
+                    storageUser(data);
+                    toast.success('Informações atualizadas com sucesso!');
+                })
+            })
+        })
+    }
+    
+    async function handleSubmit(e){
+        e.preventDefault();
+        
+        if (imageAvatar === null && nome !== '') {
+            const docRef = doc(db, 'users', user.uid);
+            // Atualiza apenas o nome do usuário
+            await updateDoc(docRef, {
+                nome: nome
+            })
+            .then(()=>{
+                let data = {
+                    ...user,
+                    nome: nome,
+                }
+    
+                // Atualiza o estado do usuário e armazena no armazenamento local
+                setUser(data);
+                storageUser(data);
+                toast.success('Nome atualizado com sucesso!');
+            })
+        }else if (nome !== '' && imageAvatar !== null) {
+            // Realiza o upload da imagem e atualiza o nome do usuário
+            handleUpload()
+        }
     }
 
     return(
@@ -42,17 +103,15 @@ export default function Profile(){
                 </Title>
 
                 <div className='container'>
-                    <form className='form-profile'>
+                    <form onSubmit={handleSubmit} className='form-profile'>
                         <label className='label-avatar'>
                             <span>
                                 <FiUpload color='#fff' size={25}/>
                             </span>
 
-                            {/* Input para selecionar um novo arquivo de imagem para o avatar */}
                             <input type="file" accept='image/*' onChange={handleFile}/>
                             <br />
 
-                            {/* Exibe a imagem do avatar. Se avatarUrl for nulo, exibe uma imagem padrão */}
                             {avatarUrl === null ? (
                                 <img src={avatar} alt='Foto de perfil' width={250} height={250}/>
                             ) : (
@@ -61,7 +120,6 @@ export default function Profile(){
                         </label>
 
                         <label>Nome:</label>
-                        {/* Input para editar o nome do usuário */}
                         <input 
                             type="text" 
                             value={nome} 
@@ -70,20 +128,17 @@ export default function Profile(){
                         />
 
                         <label>Email:</label>
-                        {/* Input para exibir o email do usuário */}
                         <input 
                             type="email" 
                             value={email} 
                             disabled={true}
                         />
 
-                        {/* Botão para salvar as alterações */}
                         <button type='submit'>Salvar</button>
                     </form>                    
                 </div>
 
                 <div className='container'>
-                    {/* Botão para fazer logout */}
                     <button className='logout-btn' onClick={()=>logout()}>Sair</button>
                 </div>
             </div>
