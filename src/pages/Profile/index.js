@@ -9,6 +9,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db, storage } from '../../services/firebaseConnection';
 import { toast } from 'react-toastify';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Link } from 'react-router-dom';
 
 export default function Profile(){
     const { user, storageUser, setUser, logout } = useContext(AuthContext);
@@ -33,20 +34,15 @@ export default function Profile(){
     }
 
     async function handleUpload(){
-        // Obtém o UID atual do usuário
         const currentUid = user.uid;
     
-        // Referência para o upload da imagem no Storage
         const uploadRef = ref(storage, `images/${currentUid}/${imageAvatar.name}`);
         
-        // Executa o upload da imagem para o Storage
         const uploadTask = uploadBytes(uploadRef, imageAvatar)
         .then((snapshot)=>{
-            // Obtém a URL de download da imagem do Storage
             getDownloadURL(snapshot.ref).then( async (downLoadURL) => {
                 let urlFoto = downLoadURL;
                 const docRef = doc(db, 'users', user.uid);
-                // Atualiza os dados do usuário com a nova URL de avatar e nome
                 await updateDoc(docRef, {
                     avatarUrl: urlFoto,
                     nome: nome,
@@ -58,7 +54,6 @@ export default function Profile(){
                         avatarUrl: urlFoto,
                     }
     
-                    // Atualiza o estado do usuário e armazena no armazenamento local
                     setUser(data);
                     storageUser(data);
                     toast.success('Informações atualizadas com sucesso!');
@@ -72,7 +67,6 @@ export default function Profile(){
         
         if (imageAvatar === null && nome !== '') {
             const docRef = doc(db, 'users', user.uid);
-            // Atualiza apenas o nome do usuário
             await updateDoc(docRef, {
                 nome: nome
             })
@@ -82,13 +76,11 @@ export default function Profile(){
                     nome: nome,
                 }
     
-                // Atualiza o estado do usuário e armazena no armazenamento local
                 setUser(data);
                 storageUser(data);
                 toast.success('Nome atualizado com sucesso!');
             })
         }else if (nome !== '' && imageAvatar !== null) {
-            // Realiza o upload da imagem e atualiza o nome do usuário
             handleUpload()
         }
     }
@@ -140,6 +132,7 @@ export default function Profile(){
 
                 <div className='container'>
                     <button className='logout-btn' onClick={()=>logout()}>Sair</button>
+                    <button className='back-btn'><Link to='/dashboard'>Voltar</Link></button>
                 </div>
             </div>
             
