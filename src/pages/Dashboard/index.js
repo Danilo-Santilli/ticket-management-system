@@ -33,7 +33,7 @@ export default function Dashboard(){
                                 <th scope="col">Cliente</th>
                                 <th scope="col">Assunto</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">cadastrado em</th>
+                                <th scope="col">Cadastrado em</th>
                                 <th scope="col">#</th>
                             </tr>
                         </thead>
@@ -41,7 +41,11 @@ export default function Dashboard(){
                             <tr>
                                 <td data-Label='Cliente'>empresa 1</td>
                                 <td data-Label='Assunto'>****</td>
-                                <td data-Label='Status'>****</td>
+                                <td data-Label='Status'>
+                                    <span className="badge" style={{backgroundColor:'#999'}}>
+                                        Em aberto
+                                    </span>
+                                </td>
                                 <td data-Label='Cadastrado'>****</td>
                                 <td data-Label='#'>
                                     <button className="action" style={{backgroundColor: '#3583f6'}}>
