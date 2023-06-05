@@ -4,8 +4,9 @@ import Title from '../../components/Title';
 import { FiPlusCircle } from 'react-icons/fi';
 import './new.css';
 import { db } from '../../services/firebaseConnection';
-import { getDoc, collection, getDocs, doc } from 'firebase/firestore';
+import { getDoc, collection, getDocs, doc, addDoc } from 'firebase/firestore';
 import { AuthContext } from '../../contexts/auth';
+import { toast } from 'react-toastify';
 
 const listRef = collection(db, 'customers');
 
@@ -64,6 +65,30 @@ export default function New(){
 		setCustomerSelected(e.target.value);
 	}
 
+	async function handleRegister(e) {
+		e.preventDefault();
+	
+		// Adiciona um novo documento à coleção 'chamados'
+		await addDoc(collection(db, 'chamados'), {
+			created: new Date(), // Define a data de criação do chamado como a data atual
+			cliente: customers[customerSelected].nomeFantasia, // Obtém o nomeFantasia do cliente selecionado
+			clienteId: customers[customerSelected].id, // Obtém o ID do cliente selecionado
+			assunto: assunto, // Obtém o assunto do chamado
+			status: status, // Obtém o status do chamado
+			complemento: complemento, // Obtém o complemento do chamado
+			userId: user.uid // Obtém o ID do usuário atualmente logado
+		})
+		.then(() => {
+			toast.success('Chamado registrado!'); // Exibe uma mensagem de sucesso
+			setComplemento(''); // Limpa o campo de complemento
+			setCustomerSelected(0); // Reseta a seleção do cliente
+		})
+		.catch((error) => {
+			console.log(error);
+			toast.error('Algo deu errado!'); // Exibe uma mensagem de erro
+		});
+	}
+
 	return(
 		<div>
 			<Header/>
@@ -72,7 +97,7 @@ export default function New(){
 					<FiPlusCircle size={25}/>
 				</Title>
 				<div className="container">
-					<form className='form-profile'>
+					<form className='form-profile' onSubmit={handleRegister}>
 						<label>Clientes:</label>
 						{
 							loadCustomer ? (
