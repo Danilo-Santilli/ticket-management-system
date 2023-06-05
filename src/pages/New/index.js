@@ -65,28 +65,26 @@ export default function New(){
 		setCustomerSelected(e.target.value);
 	}
 
-	async function handleRegister(e) {
+	async function handleRegister(e){
 		e.preventDefault();
-	
-		// Adiciona um novo documento à coleção 'chamados'
 		await addDoc(collection(db, 'chamados'), {
-			created: new Date(), // Define a data de criação do chamado como a data atual
-			cliente: customers[customerSelected].nomeFantasia, // Obtém o nomeFantasia do cliente selecionado
-			clienteId: customers[customerSelected].id, // Obtém o ID do cliente selecionado
-			assunto: assunto, // Obtém o assunto do chamado
-			status: status, // Obtém o status do chamado
-			complemento: complemento, // Obtém o complemento do chamado
-			userId: user.uid // Obtém o ID do usuário atualmente logado
+			created: new Date(),
+			cliente: customers[customerSelected].nomeFantasia,
+			clienteId: customers[customerSelected].id,
+			assunto: assunto,
+			status: status,
+			complemento: complemento,
+			userId: user.uid
 		})
-		.then(() => {
-			toast.success('Chamado registrado!'); // Exibe uma mensagem de sucesso
-			setComplemento(''); // Limpa o campo de complemento
-			setCustomerSelected(0); // Reseta a seleção do cliente
+		.then(()=>{
+			toast.success('Chamado registrado!');
+			setComplemento('');
+			setCustomerSelected(0);
 		})
-		.catch((error) => {
+		.catch((error)=>{
 			console.log(error);
-			toast.error('Algo deu errado!'); // Exibe uma mensagem de erro
-		});
+			toast.error('Algo deu errado!');
+		})
 	}
 
 	return(
