@@ -9,13 +9,16 @@ import { db } from "../../services/firebaseConnection";
 import { getDocs, collection, orderBy, limit, startAfter, query } from "firebase/firestore";
 import { format } from 'date-fns';
 
+const listRef = collection(db, 'chamados');
+
 export default function Dashboard(){
   const { logout } = useContext(AuthContext);
 
   const [chamados, setChamados] = useState([]);
   const [loading, setloading] = useState(true);
-  const listRef = collection(db, 'chamados');
   const [isEmpty, setIsEmpty] = useState(false);
+  const [lastDocs, setLastDocs] = useState();
+  const [loadingMore, setloadingMore] = useState(false);
 
   useEffect(()=>{
     async function loadChamados(){
@@ -48,11 +51,30 @@ export default function Dashboard(){
         })
       })
 
+      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] //PEGANDO O ULTIMO ITEM
+
       setChamados(chamados => [...chamados, ...lista]);
+      setLastDocs(lastDoc);
     }else{
       setIsEmpty(true);
     }
+
+    setloadingMore(false);
   }
+
+  async function handleMore() {
+    setloadingMore(true); // Define que está carregando mais chamados
+  
+    // Define a query para buscar os chamados ordenados por data de criação em ordem decrescente,
+    // começando após o último documento carregado e limitando a 5 resultados
+    const q = query(listRef, orderBy('created', 'desc'), startAfter(lastDocs), limit(5));
+  
+    // Executa a query e obtém o snapshot dos resultados
+    const querySnapshot = await getDocs(q);
+  
+    // Atualiza o estado dos chamados com base no snapshot
+    await updateState(querySnapshot);
+  }  
 
   if (loading) {
     return(
@@ -109,7 +131,7 @@ export default function Dashboard(){
                     <td data-Label='Cliente'>{item.cliente}</td>
                     <td data-Label='Assunto'>{item.assunto}</td>
                     <td data-Label='Status'>
-                      <span className="badge" style={{backgroundColor:'#999'}}>
+                      <span className="badge" style={{backgroundColor: item.status === 'Aberto' ? '#5cb85c' : '#999'}}>
                         {item.status}
                       </span>
                     </td>
@@ -127,6 +149,9 @@ export default function Dashboard(){
               })}
             </tBody>
           </table>
+          
+          {loadingMore && <h3>Buscando mais chamados...</h3>}
+          {!loadingMore && !isEmpty && <button className="btn-more" onClick={handleMore}>Buscar mais</button>}
           </>
         )}
       </div>
