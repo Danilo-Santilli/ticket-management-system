@@ -4,16 +4,17 @@ import Title from '../../components/Title';
 import { FiPlusCircle } from 'react-icons/fi';
 import './new.css';
 import { db } from '../../services/firebaseConnection';
-import { getDoc, collection, getDocs, doc, addDoc } from 'firebase/firestore';
+import { getDoc, collection, getDocs, doc, addDoc, updateDoc } from 'firebase/firestore';
 import { AuthContext } from '../../contexts/auth';
 import { toast } from 'react-toastify';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 
 const listRef = collection(db, 'customers');
 
 export default function New(){
 	const { user } = useContext(AuthContext);
 	const { id } = useParams();
+	const navigate = useNavigate();
 
 	const [customers, setCustomers] = useState([]);
 	const [loadCustomer, setLoadCustomer] = useState(true);
@@ -24,65 +25,59 @@ export default function New(){
 	const [status, setStatus] = useState('Aberto');
 	const [idCustomer, setIdCustomer] = useState(false);
 
-	useEffect(() => {
-		async function loadCustomers() {
+	useEffect(()=>{
+		async function loadCustomers(){
 			const querySnapshot = await getDocs(listRef)
-				.then((snapshot) => {
-					let lista = [];
-					snapshot.forEach((doc) => {
-						lista.push({
-							id: doc.id,
-							nomeFantasia: doc.data().nomeFantasia
-						});
-					});
-	
-					if (snapshot.docs.size === 0) {
-						console.log('Nenhuma empresa encontrada!');
-						setCustomers([{ id: '1', nomeFantasia: 'Freela' }]);
-						setLoadCustomer(false);
-						return;
-					}
-	
-					setCustomers(lista); // Define a lista de clientes com base nos dados obtidos do banco de dados
-					setLoadCustomer(false); // Define que o carregamento dos clientes está concluído
-	
-					if (id) {
-						loadId(lista); // Se um ID específico estiver presente, carrega os dados do chamado correspondente
-					}
+			.then((snapshot)=>{
+				let lista = [];
+				snapshot.forEach((doc)=>{
+					lista.push({
+						id: doc.id,
+						nomeFantasia: doc.data().nomeFantasia
+					})
 				})
-				.catch((error) => {
-					console.log('Erro ao buscar os clientes', error);
-					setLoadCustomer(false); // Define que o carregamento dos clientes falhou
-					setCustomers([{ id: '1', nomeFantasia: 'Freela' }]);
-				});
-		}
-	
-		loadCustomers(); // Executa a função para carregar os clientes
-	
-	}, [id]);
-	
 
-	async function loadId(lista) {
-		const docRef = doc(db, 'chamados', id); // Referência ao documento do chamado com o ID fornecido
-		await getDoc(docRef)
-			.then((snapshot) => {
-				// Quando os dados do documento são obtidos com sucesso
-				setAssunto(snapshot.data().assunto); // Define o valor do campo 'assunto' com base nos dados do chamado
-				setStatus(snapshot.data().status); // Define o valor do campo 'status' com base nos dados do chamado
-				setComplemento(snapshot.data().complemento); // Define o valor do campo 'complemento' com base nos dados do chamado
-	
-				// Encontra o índice do cliente associado ao chamado na lista de clientes
-				let index = lista.findIndex(item => item.id === snapshot.data().clienteId);
-				setCustomerSelected(index); // Define o valor do campo 'customerSelected' com base no índice encontrado
-				setIdCustomer(true); // Define que o ID do cliente está definido (true)
+				if (snapshot.docs.size === 0) {
+					console.log('Nenhuma empresa encontrada!');
+					setCustomers([{id: '1', nomeFantasia: 'Freela'}]);
+					setLoadCustomer(false);
+					return;
+				}
+
+				setCustomers(lista);
+				setLoadCustomer(false);
+
+				if (id) {
+					loadId(lista);
+				}
 			})
-			.catch((error) => {
-				// Em caso de erro ao obter os dados do chamado
-				console.log(error);
-				setIdCustomer(false); // Define que o ID do cliente não está definido (false)
-			});
+			.catch((error)=>{
+				console.log('Erro ao buscar os clientes', error);
+				setLoadCustomer(false);
+				setCustomers([{id: '1', nomeFantasia: 'Freela'}]);
+			})
+		}
+
+		loadCustomers();
+	}, [id]);
+
+	async function loadId(lista){
+		const docRef = doc(db, 'chamados', id);
+		await getDoc(docRef)
+		.then((snapshot)=>{
+			setAssunto(snapshot.data().assunto);
+			setStatus(snapshot.data().status);
+			setComplemento(snapshot.data().complemento);
+
+			let index = lista.findIndex(item => item.id === snapshot.data().clienteId);
+			setCustomerSelected(index);
+			setIdCustomer(true);
+		})
+		.catch((error)=>{
+			console.log(error);
+			setIdCustomer(false);
+		})
 	}
-	
 
 	function handleOptionChange(e){
 		setStatus(e.target.value);
@@ -100,7 +95,25 @@ export default function New(){
 		e.preventDefault();
 
 		if (idCustomer) {
-			alert('Editando Chamado!');
+			const docRef = doc(db, 'chamados', id)
+			await updateDoc(docRef, {
+				cliente: customers[customerSelected].nomeFantasia,
+				clienteId: customers[customerSelected].id,
+				assunto: assunto,
+				status: status,
+				complemento: complemento,
+				userId: user.uid
+			})
+			.then(()=>{
+				toast.success('Atualizado com sucesso!');
+				setCustomerSelected(0);
+				setComplemento('');
+				navigate('/dashboard');
+			})
+			.catch((error)=>{
+				console.log(error);
+				toast.error('Algo deu errado na atualização');
+			})
 			return;
 		}
 
@@ -128,7 +141,7 @@ export default function New(){
 		<div>
 			<Header/>
 			<div className="content">
-				<Title name='Novo chamado'>
+				<Title name={id ? 'Editando chamado' : 'Novo chamado'}>
 					<FiPlusCircle size={25}/>
 				</Title>
 				<div className="container">
