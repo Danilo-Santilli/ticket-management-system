@@ -7,11 +7,13 @@ import { db } from '../../services/firebaseConnection';
 import { getDoc, collection, getDocs, doc, addDoc } from 'firebase/firestore';
 import { AuthContext } from '../../contexts/auth';
 import { toast } from 'react-toastify';
+import { useParams } from 'react-router-dom';
 
 const listRef = collection(db, 'customers');
 
 export default function New(){
 	const { user } = useContext(AuthContext);
+	const { id } = useParams();
 
 	const [customers, setCustomers] = useState([]);
 	const [loadCustomer, setLoadCustomer] = useState(true);
@@ -20,38 +22,67 @@ export default function New(){
 	const [complemento, setComplemento] = useState('');
 	const [assunto, setAssunto] = useState('Suporte');
 	const [status, setStatus] = useState('Aberto');
+	const [idCustomer, setIdCustomer] = useState(false);
 
-	useEffect(()=>{
-		async function loadCustomers(){
+	useEffect(() => {
+		async function loadCustomers() {
 			const querySnapshot = await getDocs(listRef)
-			.then((snapshot)=>{
-				let lista = [];
-				snapshot.forEach((doc)=>{
-					lista.push({
-						id: doc.id,
-						nomeFantasia: doc.data().nomeFantasia
-					})
+				.then((snapshot) => {
+					let lista = [];
+					snapshot.forEach((doc) => {
+						lista.push({
+							id: doc.id,
+							nomeFantasia: doc.data().nomeFantasia
+						});
+					});
+	
+					if (snapshot.docs.size === 0) {
+						console.log('Nenhuma empresa encontrada!');
+						setCustomers([{ id: '1', nomeFantasia: 'Freela' }]);
+						setLoadCustomer(false);
+						return;
+					}
+	
+					setCustomers(lista); // Define a lista de clientes com base nos dados obtidos do banco de dados
+					setLoadCustomer(false); // Define que o carregamento dos clientes está concluído
+	
+					if (id) {
+						loadId(lista); // Se um ID específico estiver presente, carrega os dados do chamado correspondente
+					}
 				})
-
-				if (snapshot.docs.size === 0) {
-					console.log('Nenhuma empresa encontrada!');
-					setCustomers([{id: '1', nomeFantasia: 'Freela'}]);
-					setLoadCustomer(false);
-					return;
-				}
-
-				setCustomers(lista);
-				setLoadCustomer(false);
-			})
-			.catch((error)=>{
-				console.log('Erro ao buscar os clientes', error);
-				setLoadCustomer(false);
-				setCustomers([{id: '1', nomeFantasia: 'Freela'}]);
-			})
+				.catch((error) => {
+					console.log('Erro ao buscar os clientes', error);
+					setLoadCustomer(false); // Define que o carregamento dos clientes falhou
+					setCustomers([{ id: '1', nomeFantasia: 'Freela' }]);
+				});
 		}
+	
+		loadCustomers(); // Executa a função para carregar os clientes
+	
+	}, [id]);
+	
 
-		loadCustomers();
-	}, []);
+	async function loadId(lista) {
+		const docRef = doc(db, 'chamados', id); // Referência ao documento do chamado com o ID fornecido
+		await getDoc(docRef)
+			.then((snapshot) => {
+				// Quando os dados do documento são obtidos com sucesso
+				setAssunto(snapshot.data().assunto); // Define o valor do campo 'assunto' com base nos dados do chamado
+				setStatus(snapshot.data().status); // Define o valor do campo 'status' com base nos dados do chamado
+				setComplemento(snapshot.data().complemento); // Define o valor do campo 'complemento' com base nos dados do chamado
+	
+				// Encontra o índice do cliente associado ao chamado na lista de clientes
+				let index = lista.findIndex(item => item.id === snapshot.data().clienteId);
+				setCustomerSelected(index); // Define o valor do campo 'customerSelected' com base no índice encontrado
+				setIdCustomer(true); // Define que o ID do cliente está definido (true)
+			})
+			.catch((error) => {
+				// Em caso de erro ao obter os dados do chamado
+				console.log(error);
+				setIdCustomer(false); // Define que o ID do cliente não está definido (false)
+			});
+	}
+	
 
 	function handleOptionChange(e){
 		setStatus(e.target.value);
@@ -67,6 +98,12 @@ export default function New(){
 
 	async function handleRegister(e){
 		e.preventDefault();
+
+		if (idCustomer) {
+			alert('Editando Chamado!');
+			return;
+		}
+
 		await addDoc(collection(db, 'chamados'), {
 			created: new Date(),
 			cliente: customers[customerSelected].nomeFantasia,

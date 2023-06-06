@@ -62,19 +62,12 @@ export default function Dashboard(){
     setloadingMore(false);
   }
 
-  async function handleMore() {
-    setloadingMore(true); // Define que está carregando mais chamados
-  
-    // Define a query para buscar os chamados ordenados por data de criação em ordem decrescente,
-    // começando após o último documento carregado e limitando a 5 resultados
+  async function handleMore(){
+    setloadingMore(true);
     const q = query(listRef, orderBy('created', 'desc'), startAfter(lastDocs), limit(5));
-  
-    // Executa a query e obtém o snapshot dos resultados
     const querySnapshot = await getDocs(q);
-  
-    // Atualiza o estado dos chamados com base no snapshot
     await updateState(querySnapshot);
-  }  
+  }
 
   if (loading) {
     return(
@@ -140,9 +133,9 @@ export default function Dashboard(){
                       <button className="action" style={{backgroundColor: '#3583f6'}}>
                         <FiSearch color="#fff" size={17}/>
                       </button>
-                      <button className="action" style={{backgroundColor: '#f6a935'}}>
+                      <Link to={`/new/${item.id}`} className="action" style={{backgroundColor: '#f6a935'}}>
                         <FiEdit2 color="#fff" size={17}/>
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 )
