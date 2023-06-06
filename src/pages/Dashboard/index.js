@@ -20,6 +20,8 @@ export default function Dashboard(){
   const [isEmpty, setIsEmpty] = useState(false);
   const [lastDocs, setLastDocs] = useState();
   const [loadingMore, setloadingMore] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
+  const [detail, setDetail] = useState();
 
   useEffect(()=>{
     async function loadChamados(){
@@ -70,6 +72,11 @@ export default function Dashboard(){
     await updateState(querySnapshot);
   }
 
+  function toggleModal(item){
+    setShowPostModal(!showPostModal);
+    setDetail(item);
+  }
+
   if (loading) {
     return(
       <div>
@@ -118,20 +125,23 @@ export default function Dashboard(){
                 <th scope="col">#</th>
               </tr>
             </thead>
-            <tBody>
+            <tbody>
               {chamados.map((item, index)=>{
                 return(
                   <tr key={index}>
-                    <td data-Label='Cliente'>{item.cliente}</td>
-                    <td data-Label='Assunto'>{item.assunto}</td>
-                    <td data-Label='Status'>
+                    <td data-label='Cliente'>{item.cliente}</td>
+                    <td data-label='Assunto'>{item.assunto}</td>
+                    <td data-label='Status'>
                       <span className="badge" style={{backgroundColor: item.status === 'Aberto' ? '#5cb85c' : '#999'}}>
                         {item.status}
                       </span>
                     </td>
-                    <td data-Label='Cadastrado'>{item.createdFormat}</td>
-                    <td data-Label='#'>
-                      <button className="action" style={{backgroundColor: '#3583f6'}}>
+                    <td data-label='Cadastrado'>{item.createdFormat}</td>
+                    <td data-label='#'>
+                      <button 
+                      className="action" 
+                      style={{backgroundColor: '#3583f6'}}
+                      onClick={()=>toggleModal(item)}>
                         <FiSearch color="#fff" size={17}/>
                       </button>
                       <Link to={`/new/${item.id}`} className="action" style={{backgroundColor: '#f6a935'}}>
@@ -141,7 +151,7 @@ export default function Dashboard(){
                   </tr>
                 )
               })}
-            </tBody>
+            </tbody>
           </table>
           
           {loadingMore && <h3>Buscando mais chamados...</h3>}
@@ -150,7 +160,12 @@ export default function Dashboard(){
         )}
       </div>
 
-      <Modal/>
+      {showPostModal && (
+        <Modal
+          conteudo={detail}
+          close={ ()=>setShowPostModal(!showPostModal) }
+        />
+      )}
 
     </div>
   )
