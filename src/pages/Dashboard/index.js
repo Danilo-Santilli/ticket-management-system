@@ -2,6 +2,7 @@ import { AuthContext } from "../../contexts/auth";
 import { useContext, useEffect, useState } from "react";
 import Header from "../../components/Header";
 import Title from '../../components/Title';
+import Modal from '../../components/Modal';
 import './dashboard.css';
 import { FiMessageSquare, FiPlus, FiSearch, FiEdit2 } from "react-icons/fi";
 import { Link } from "react-router-dom";
@@ -148,6 +149,9 @@ export default function Dashboard(){
           </>
         )}
       </div>
+
+      <Modal/>
+
     </div>
   )
 }
