@@ -45,7 +45,7 @@ function AuthProvider({children}){
     
             let data = {
                 uid: uid,
-                nome: docSnap.data().nome,
+                name: docSnap.data().name,
                 email: value.user.email,
                 avatarUrl: docSnap.data().avatarUrl
             }
@@ -53,13 +53,13 @@ function AuthProvider({children}){
             setUser(data);
             storageUser(data);
             setLoadingAuth(false);
-            toast.success('Você entrou no sistema!');
+            toast.success('You have logged into the system!');
             navigate('/dashboard');
         })
         .catch((error)=>{
             console.log(error);
             setLoadingAuth(false);
-            toast.error('Ops, algo deu errado!');
+            toast.error('Ops, something went wrong!');
         })
     }
     
@@ -72,13 +72,13 @@ function AuthProvider({children}){
             let uid = value.user.uid;
 
             await setDoc(doc(db, 'users', uid),{
-                nome: name,
+                name: name,
                 avatarUrl: null
             })
             .then(()=>{
                 let data = {
                     uid: uid,
-                    nome: name,
+                    name: name,
                     email: value.user.email,
                     avatarUrl: null
                 };
@@ -86,14 +86,14 @@ function AuthProvider({children}){
                 setUser(data);
                 storageUser(data);
                 setLoadingAuth(false);
-                toast.success('Seja bem-vindo ao sistema!')
+                toast.success('Welcome to the system!')
                 navigate('/dashboard');
             });
         })
         .catch((error)=>{
             console.log(error);
             setLoadingAuth(false);
-            toast.error('Ops, algo deu errado!');
+            toast.error('Ops, something went wrong!');
         });
     }
 

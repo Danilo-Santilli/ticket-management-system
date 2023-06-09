@@ -23,11 +23,11 @@ export default function SignIn(){
         <div className='container-center'>
             <div className="login">
                 <div className="login-area">
-                    <img src={logo} alt="Logo do sistema de chamados" />
+                    <img src={logo} alt="System calls logo" />
                 </div>
 
                 <form onSubmit={handleSignIn}>
-                    <h1>Entrar</h1>
+                    <h1>Login</h1>
                     <input 
                     type="email" 
                     placeholder='Email' 
@@ -42,11 +42,11 @@ export default function SignIn(){
                     />
 
                     <button type='submit'>
-                        {loadingAuth ? 'Carregando...' : 'Entrar'}
+                        {loadingAuth ? 'Loading...' : 'Login'}
                     </button>
                 </form>
 
-                <Link to='/register'>Não possui uma conta? Crie uma aqui!</Link>
+                <Link to='/register'>Don't have an account? Create one here!</Link>
             </div>
         </div>
     )

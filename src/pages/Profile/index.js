@@ -16,7 +16,7 @@ export default function Profile(){
 
     const [avatarUrl, setAvatarUrl] = useState(user && user.avatarUrl);
     const [imageAvatar, setImageAvatar] = useState(null);
-    const [nome, setNome] = useState(user && user.nome);
+    const [name, setName] = useState(user && user.name);
     const [email, setEmail] = useState(user && user.email);
 
     function handleFile(e){
@@ -26,7 +26,7 @@ export default function Profile(){
                 setImageAvatar(image);
                 setAvatarUrl(URL.createObjectURL(image));
             }else{
-                alert('Envie uma imagem do tipo PNG ou JPG');
+                alert('Upload a PNG or JPG image');
                 setImageAvatar(null);
                 return;
             }
@@ -41,22 +41,22 @@ export default function Profile(){
         const uploadTask = uploadBytes(uploadRef, imageAvatar)
         .then((snapshot)=>{
             getDownloadURL(snapshot.ref).then( async (downLoadURL) => {
-                let urlFoto = downLoadURL;
+                let urlPhoto = downLoadURL;
                 const docRef = doc(db, 'users', user.uid);
                 await updateDoc(docRef, {
-                    avatarUrl: urlFoto,
-                    nome: nome,
+                    avatarUrl: urlPhoto,
+                    name: name,
                 })
                 .then(()=>{
                     let data = {
                         ...user,
-                        nome: nome,
-                        avatarUrl: urlFoto,
+                        name: name,
+                        avatarUrl: urlPhoto,
                     }
     
                     setUser(data);
                     storageUser(data);
-                    toast.success('Informações atualizadas com sucesso!');
+                    toast.success('Information successfully updated!');
                 })
             })
         })
@@ -65,22 +65,22 @@ export default function Profile(){
     async function handleSubmit(e){
         e.preventDefault();
         
-        if (imageAvatar === null && nome !== '') {
+        if (imageAvatar === null && name !== '') {
             const docRef = doc(db, 'users', user.uid);
             await updateDoc(docRef, {
-                nome: nome
+                name: name
             })
             .then(()=>{
                 let data = {
                     ...user,
-                    nome: nome,
+                    name: name,
                 }
     
                 setUser(data);
                 storageUser(data);
-                toast.success('Nome atualizado com sucesso!');
+                toast.success('Name successfully updated!');
             })
-        }else if (nome !== '' && imageAvatar !== null) {
+        }else if (name !== '' && imageAvatar !== null) {
             handleUpload()
         }
     }
@@ -90,7 +90,7 @@ export default function Profile(){
             <Header/>
 
             <div className='content'>
-                <Title name='Minha conta'>
+                <Title name='My account'>
                     <FiSettings size={25}/>
                 </Title>
 
@@ -105,18 +105,18 @@ export default function Profile(){
                             <br />
 
                             {avatarUrl === null ? (
-                                <img src={avatar} alt='Foto de perfil' width={250} height={250}/>
+                                <img src={avatar} alt='Profile' width={250} height={250}/>
                             ) : (
-                                <img src={avatarUrl} alt='Foto de perfil' width={250} height={250}/>
+                                <img src={avatarUrl} alt='Profile' width={250} height={250}/>
                             )}
                         </label>
 
-                        <label>Nome:</label>
+                        <label>Name:</label>
                         <input 
                             type="text" 
-                            value={nome} 
-                            placeholder='Seu nome'
-                            onChange={(e)=>setNome(e.target.value)}
+                            value={name} 
+                            placeholder='Your name'
+                            onChange={(e)=>setName(e.target.value)}
                         />
 
                         <label>Email:</label>
@@ -126,13 +126,13 @@ export default function Profile(){
                             disabled={true}
                         />
 
-                        <button type='submit'>Salvar</button>
+                        <button type='submit'>Save</button>
                     </form>                    
                 </div>
 
                 <div className='container'>
-                    <button className='logout-btn' onClick={()=>logout()}>Sair</button>
-                    <button className='back-btn'><Link to='/dashboard'>Voltar</Link></button>
+                    <button className='logout-btn' onClick={()=>logout()}>Logout</button>
+                    <button className='back-btn'><Link to='/dashboard'>Back</Link></button>
                 </div>
             </div>
             

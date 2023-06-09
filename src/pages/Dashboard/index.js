@@ -10,12 +10,12 @@ import { db } from "../../services/firebaseConnection";
 import { getDocs, collection, orderBy, limit, startAfter, query } from "firebase/firestore";
 import { format } from 'date-fns';
 
-const listRef = collection(db, 'chamados');
+const listRef = collection(db, 'calls');
 
 export default function Dashboard(){
   const { logout } = useContext(AuthContext);
 
-  const [chamados, setChamados] = useState([]);
+  const [calls, setCalls] = useState([]);
   const [loading, setloading] = useState(true);
   const [isEmpty, setIsEmpty] = useState(false);
   const [lastDocs, setLastDocs] = useState();
@@ -24,15 +24,15 @@ export default function Dashboard(){
   const [detail, setDetail] = useState();
 
   useEffect(()=>{
-    async function loadChamados(){
+    async function loadCalls(){
       const q = query(listRef, orderBy('created', 'desc'), limit(5));
       const querySnapshot = await getDocs(q);
-      setChamados([]);
+      setCalls([]);
       await updateState(querySnapshot);
       setloading(false);
     }
 
-    loadChamados();
+    loadCalls();
 
     return ()=>{ }
   }, []);
@@ -40,23 +40,23 @@ export default function Dashboard(){
   async function updateState(querySnapshot){
     const isCollectionEmpty = querySnapshot.size === 0;
     if (!isCollectionEmpty) {
-      let lista = [];
+      let list = [];
       querySnapshot.forEach((doc)=>{
-        lista.push({
+        list.push({
           id: doc.id,
-          assunto: doc.data().assunto,
-          cliente: doc.data().cliente,
-          clienteId: doc.data().clienteId,
+          topic: doc.data().topic,
+          customer: doc.data().customer,
+          customerId: doc.data().customerId,
           created: doc.data().created,
           createdFormat: format(doc.data().created.toDate(), 'dd/MM/yyyy'),
           status: doc.data().status,
-          complemento: doc.data().complemento
+          complement: doc.data().complement
         })
       })
 
-      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] //PEGANDO O ULTIMO ITEM
+      const lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] //GETTING THE LAST ITEM
 
-      setChamados(chamados => [...chamados, ...lista]);
+      setCalls(calls => [...calls, ...list]);
       setLastDocs(lastDoc);
     }else{
       setIsEmpty(true);
@@ -86,7 +86,7 @@ export default function Dashboard(){
             <FiMessageSquare size={25}/>
           </Title>
           <div className="container dashboard">
-            <span>Buscando chamados, aguarde.</span>
+            <span>Getting calls, wait.</span>
           </div>
         </div>
       </div>
@@ -101,42 +101,42 @@ export default function Dashboard(){
           <FiMessageSquare size={25}/>
         </Title>
 
-        {chamados.length === 0 ? (
+        {calls.length === 0 ? (
           <div className="container dashboard">
-            <span>Nenhum chamado registrado</span>
+            <span>No calls registered</span>
             <Link className="new" to='/new'>
               <FiPlus color="#fff" size={25}/>
-              Novo chamado
+              New call
             </Link>
           </div>
         ) : (
           <>
             <Link className="new" to='/new'>
               <FiPlus color="#fff" size={25}/>
-              Novo chamado
+              New call
             </Link>
             <table>
             <thead>
               <tr>
-                <th scope="col">Cliente</th>
-                <th scope="col">Assunto</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Topic</th>
                 <th scope="col">Status</th>
-                <th scope="col">Cadastrado em</th>
+                <th scope="col">Created in</th>
                 <th scope="col">#</th>
               </tr>
             </thead>
             <tbody>
-              {chamados.map((item, index)=>{
+              {calls.map((item, index)=>{
                 return(
                   <tr key={index}>
-                    <td data-label='Cliente'>{item.cliente}</td>
-                    <td data-label='Assunto'>{item.assunto}</td>
+                    <td data-label='Customer'>{item.customer}</td>
+                    <td data-label='Topic'>{item.topic}</td>
                     <td data-label='Status'>
-                      <span className="badge" style={{backgroundColor: item.status === 'Aberto' ? '#5cb85c' : '#999'}}>
+                      <span className="badge" style={{backgroundColor: item.status === 'Open' ? '#5cb85c' : '#999'}}>
                         {item.status}
                       </span>
                     </td>
-                    <td data-label='Cadastrado'>{item.createdFormat}</td>
+                    <td data-label='Registered'>{item.createdFormat}</td>
                     <td data-label='#'>
                       <button 
                       className="action" 
@@ -154,15 +154,15 @@ export default function Dashboard(){
             </tbody>
           </table>
           
-          {loadingMore && <h3>Buscando mais chamados...</h3>}
-          {!loadingMore && !isEmpty && <button className="btn-more" onClick={handleMore}>Buscar mais</button>}
+          {loadingMore && <h3>Searching for more calls...</h3>}
+          {!loadingMore && !isEmpty && <button className="btn-more" onClick={handleMore}>Search more</button>}
           </>
         )}
       </div>
 
       {showPostModal && (
         <Modal
-          conteudo={detail}
+          content={detail}
           close={ ()=>setShowPostModal(!showPostModal) }
         />
       )}

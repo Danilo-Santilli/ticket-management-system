@@ -20,56 +20,56 @@ export default function New(){
 	const [loadCustomer, setLoadCustomer] = useState(true);
 	const [customerSelected, setCustomerSelected] = useState(0);
 
-	const [complemento, setComplemento] = useState('');
-	const [assunto, setAssunto] = useState('Suporte');
-	const [status, setStatus] = useState('Aberto');
+	const [complement, setComplement] = useState('');
+	const [topic, setTopic] = useState('Support');
+	const [status, setStatus] = useState('Open');
 	const [idCustomer, setIdCustomer] = useState(false);
 
 	useEffect(()=>{
 		async function loadCustomers(){
 			const querySnapshot = await getDocs(listRef)
 			.then((snapshot)=>{
-				let lista = [];
+				let list = [];
 				snapshot.forEach((doc)=>{
-					lista.push({
+					list.push({
 						id: doc.id,
-						nomeFantasia: doc.data().nomeFantasia
+						fantasyName: doc.data().fantasyName
 					})
 				})
 
 				if (snapshot.docs.size === 0) {
-					console.log('Nenhuma empresa encontrada!');
-					setCustomers([{id: '1', nomeFantasia: 'Freela'}]);
+					console.log('No company found!');
+					setCustomers([{id: '1', fantasyName: 'Freela'}]);
 					setLoadCustomer(false);
 					return;
 				}
 
-				setCustomers(lista);
+				setCustomers(list);
 				setLoadCustomer(false);
 
 				if (id) {
-					loadId(lista);
+					loadId(list);
 				}
 			})
 			.catch((error)=>{
-				console.log('Erro ao buscar os clientes', error);
+				console.log('Error when searching for customers', error);
 				setLoadCustomer(false);
-				setCustomers([{id: '1', nomeFantasia: 'Freela'}]);
+				setCustomers([{id: '1', fantasyName: 'Freela'}]);
 			})
 		}
 
 		loadCustomers();
 	}, [id]);
 
-	async function loadId(lista){
-		const docRef = doc(db, 'chamados', id);
+	async function loadId(list){
+		const docRef = doc(db, 'calls', id);
 		await getDoc(docRef)
 		.then((snapshot)=>{
-			setAssunto(snapshot.data().assunto);
+			setTopic(snapshot.data().topic);
 			setStatus(snapshot.data().status);
-			setComplemento(snapshot.data().complemento);
+			setComplement(snapshot.data().complement);
 
-			let index = lista.findIndex(item => item.id === snapshot.data().clienteId);
+			let index = list.findIndex(item => item.id === snapshot.data().cutomerId);
 			setCustomerSelected(index);
 			setIdCustomer(true);
 		})
@@ -84,7 +84,7 @@ export default function New(){
 	}
 
 	function handleChangeSelect(e){
-		setAssunto(e.target.value);
+		setTopic(e.target.value);
 	}
 
 	function handleChangeCustomer(e){
@@ -95,45 +95,45 @@ export default function New(){
 		e.preventDefault();
 
 		if (idCustomer) {
-			const docRef = doc(db, 'chamados', id)
+			const docRef = doc(db, 'calls', id)
 			await updateDoc(docRef, {
-				cliente: customers[customerSelected].nomeFantasia,
-				clienteId: customers[customerSelected].id,
-				assunto: assunto,
+				customer: customers[customerSelected].fantasyName,
+				customerId: customers[customerSelected].id,
+				topic: topic,
 				status: status,
-				complemento: complemento,
+				complement: complement,
 				userId: user.uid
 			})
 			.then(()=>{
-				toast.success('Atualizado com sucesso!');
+				toast.success('Successfully updated!');
 				setCustomerSelected(0);
-				setComplemento('');
+				setComplement('');
 				navigate('/dashboard');
 			})
 			.catch((error)=>{
 				console.log(error);
-				toast.error('Algo deu errado na atualização');
+				toast.error('Something went wrong with the update');
 			})
 			return;
 		}
 
-		await addDoc(collection(db, 'chamados'), {
+		await addDoc(collection(db, 'calls'), {
 			created: new Date(),
-			cliente: customers[customerSelected].nomeFantasia,
-			clienteId: customers[customerSelected].id,
-			assunto: assunto,
+			customer: customers[customerSelected].fantasyName,
+			customerId: customers[customerSelected].id,
+			topic: topic,
 			status: status,
-			complemento: complemento,
+			complement: complement,
 			userId: user.uid
 		})
 		.then(()=>{
-			toast.success('Chamado registrado!');
-			setComplemento('');
+			toast.success('Registered call!');
+			setComplement('');
 			setCustomerSelected(0);
 		})
 		.catch((error)=>{
 			console.log(error);
-			toast.error('Algo deu errado!');
+			toast.error('Something went wrong!');
 		})
 	}
 
@@ -141,15 +141,15 @@ export default function New(){
 		<div>
 			<Header/>
 			<div className="content">
-				<Title name={id ? 'Editando chamado' : 'Novo chamado'}>
+				<Title name={id ? 'Editing call' : 'New call'}>
 					<FiPlusCircle size={25}/>
 				</Title>
 				<div className="container">
 					<form className='form-profile' onSubmit={handleRegister}>
-						<label>Clientes:</label>
+						<label>Customers:</label>
 						{
 							loadCustomer ? (
-								<input type='text' disabled={true} value='Carregando...'/>
+								<input type='text' disabled={true} value='Loading...'/>
 							) : (
 								<select 
 								value={customerSelected} 
@@ -157,7 +157,7 @@ export default function New(){
 									{customers.map((item, index)=>{
 										return(
 											<option key={index} value={index}>
-												{item.nomeFantasia}
+												{item.fantasyName}
 											</option>
 										)
 									})}
@@ -165,49 +165,49 @@ export default function New(){
 							)
 						}
 
-						<label>Assunto:</label>
+						<label>Topic:</label>
 						<select 
 						onChange={handleChangeSelect}
-						value={assunto}>
-							<option value='Suporte'>Suporte</option>
-							<option value='Visita técnica'>Visita técnica</option>
-							<option value='Financeiro'>Financeiro</option>
+						value={topic}>
+							<option value='Support'>Support</option>
+							<option value='Technical visit'>Technical visit</option>
+							<option value='Finances'>Finances</option>
 						</select>
 
 						<label>Status:</label>
 						<div className="status">
 							<input type="radio"
 							name='radio'
-							value='Aberto'
+							value='Open'
 							onChange={handleOptionChange}
-							checked={ status === 'Aberto' }
+							checked={ status === 'Open' }
 							/>
-							<span>Em aberto</span>
+							<span>Open</span>
 
 							<input type="radio"
 							name='radio'
-							value='Progresso'
+							value='Progress'
 							onChange={handleOptionChange}
-							checked={ status === 'Progresso' }
+							checked={ status === 'Progress' }
 							/>
-							<span>Progresso</span>
+							<span>Progress</span>
 							
 							<input type="radio"
 							name='radio'
-							value='Atendido'
+							value='Attended'
 							onChange={handleOptionChange}
-							checked={ status === 'Atendido' }
+							checked={ status === 'Attended' }
 							/>
-							<span>Atendido</span>
+							<span>Attended</span>
 						</div>
 
-						<label htmlFor="">Complemento</label>
+						<label htmlFor="">Complement</label>
 						<textarea 
-						placeholder='Descreva seu problema (opcional)'
-						value={complemento}
-						onChange={(e)=>setComplemento(e.target.value)}></textarea>
+						placeholder='Describe your problem (optional)'
+						value={complement}
+						onChange={(e)=>setComplement(e.target.value)}></textarea>
 						
-						<button type='submit'>Registrar</button>
+						<button type='submit'>Register</button>
 					</form>
 				</div>
 			</div>

@@ -24,14 +24,14 @@ export default function SignIn(){
         <div className='container-center'>
             <div className="login">
                 <div className="login-area">
-                    <img src={logo} alt="Logo do sistema de chamados" />
+                    <img src={logo} alt="System calls logo" />
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <h1>Nova conta</h1>
+                    <h1>New account</h1>
                     <input 
                     type="text" 
-                    placeholder='Nome' 
+                    placeholder='Name' 
                     value={name}
                     onChange={ (e)=> setName(e.target.value) }
                     />
@@ -49,11 +49,11 @@ export default function SignIn(){
                     />
 
                     <button type='submit'>
-                        {loadingAuth ? 'Carregando...' : 'Cadastrar'}
+                        {loadingAuth ? 'Loading...' : 'Register'}
                     </button>
                 </form>
 
-                <Link to='/'>Já possui uma conta? Acesse aqui!</Link>
+                <Link to='/'>Already have an account? Log in here!</Link>
             </div>
         </div>
     )
